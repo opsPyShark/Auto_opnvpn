@@ -1,24 +1,35 @@
 #!/bin/bash
 
-# Убедитесь, что используете абсолютный путь к docker-compose.yml
-DOCKER_COMPOSE_FILE="/root/antizapret/docker-compose.yml"
+# Функция для поиска файла .env на всем сервере
+find_env_file() {
+  find / -name ".env" 2>/dev/null | head -n 1
+}
 
-# Загружаем переменные из .env файла
+# Путь к docker-compose.yml
+DOCKER_COMPOSE_FILE="/root/auto_opnvpn/antizapret/docker-compose.yml"
+
+# Поиск и загрузка переменных из .env файла
+ENV_FILE=$(find_env_file)
+if [ -z "$ENV_FILE" ]; then
+  echo "Ошибка: Файл .env не найден на сервере."
+  exit 1
+fi
+
+echo "Загружаем переменные из $ENV_FILE"
 set -a
-source .env
+source "$ENV_FILE"
 set +a
 
 # Проверка наличия необходимых переменных
 if [ -z "$CHAT_ID" ] || [ -z "$BOT_TOKEN" ]; then
-  echo "Ошибка: Не установлены переменные CHAT_ID или BOT_TOKEN в .env файле."
+  echo "Ошибка: Не установлены переменные CHAT_ID или BOT_TOKEN в файле .env."
   exit 1
 fi
 
 # Установка Docker
 echo "Установка Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-if [ $? -eq 0 ]; then
+if sudo sh get-docker.sh; then
   echo "Docker установлен успешно."
   curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="$CHAT_ID" -d text="Docker установлен успешно."
 else
@@ -43,7 +54,7 @@ cd antizapret
 
 # Сборка и запуск контейнеров
 echo "Сборка и запуск контейнеров..."
-docker compose up -d --build
+docker compose -f "$DOCKER_COMPOSE_FILE" up -d --build
 if [ $? -eq 0 ]; then
   echo "Контейнеры успешно собраны и запущены."
   curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="$CHAT_ID" -d text="Контейнеры успешно собраны и запущены."
@@ -56,8 +67,8 @@ fi
 # Обновление репозитория и контейнеров
 echo "Обновление репозитория и контейнеров..."
 git pull
-docker compose build
-docker compose up -d
+docker compose -f "$DOCKER_COMPOSE_FILE" build
+docker compose -f "$DOCKER_COMPOSE_FILE" up -d
 if [ $? -eq 0 ]; then
   echo "Репозиторий и контейнеры успешно обновлены."
   curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="$CHAT_ID" -d text="Репозиторий и контейнеры успешно обновлены."
