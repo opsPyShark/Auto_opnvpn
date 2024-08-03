@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Убедитесь, что используете абсолютный путь к docker-compose.yml
-DOCKER_COMPOSE_FILE="/root/antizapret/docker-compose.yml"
+DOCKER_COMPOSE_FILE="/root/auto_opnvpn/antizapret/docker-compose.yml"
 
 # Проверка наличия файла docker-compose.yml
 if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
