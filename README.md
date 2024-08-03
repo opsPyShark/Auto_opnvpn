@@ -1,3 +1,2 @@
-make .env and start setup_server.sh
-создает опнвпн на основе зпртнт + отправляет в телеграм
-в енв добавь токены и айди
+new_install for first time
+reset-reset
