@@ -11,14 +11,26 @@ fi
 
 echo "Найден файл docker-compose.yml: $DOCKER_COMPOSE_FILE"
 
-# Загружаем переменные из .env файла
+# Функция для поиска файла .env на всем сервере
+find_env_file() {
+  find / -name ".env" 2>/dev/null | head -n 1
+}
+
+# Поиск и загрузка переменных из .env файла
+ENV_FILE=$(find_env_file)
+if [ -z "$ENV_FILE" ]; then
+  echo "Ошибка: Файл .env не найден на сервере."
+  exit 1
+fi
+
+echo "Загружаем переменные из $ENV_FILE"
 set -a
-source .env
+source "$ENV_FILE"
 set +a
 
 # Проверка наличия необходимых переменных
 if [ -z "$CHAT_ID" ] || [ -z "$BOT_TOKEN" ]; then
-  echo "Ошибка: Не установлены переменные CHAT_ID или BOT_TOKEN в .env файле."
+  echo "Ошибка: Не установлены переменные CHAT_ID или BOT_TOKEN в файле .env."
   exit 1
 fi
 
@@ -51,7 +63,7 @@ echo "Контейнеры удалены."
 # Удаление старых ключей
 echo "Удаление старых ключей..."
 rm -rf easyrsa3/pki/
-rm -rf client_keys/
+rm -rf antizapret/client_keys/
 echo "Старые ключи удалены."
 
 # Запуск контейнеров
